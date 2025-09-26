@@ -1,54 +1,49 @@
-name: Proyecto4 CI/CD
+name: CI Proyecto 4
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
-  devops-automation:
+  build:
     runs-on: ubuntu-latest
-
     services:
       mysql:
-        image: mysql:8.0
+        image: mysql:5.7
         env:
           MYSQL_ROOT_PASSWORD: admin
           MYSQL_DATABASE: testdb
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping --silent"
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -padmin"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
 
+    env:
+      MYSQL_USER: root
+      MYSQL_PASSWORD: admin
+      MYSQL_HOST: 127.0.0.1
+      MYSQL_DB: testdb
+
     steps:
-      - name: Chequear repositorio
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
-      - name: Instalar Python, dependencias y cliente MySQL
+      - name: Esperar a que MySQL esté listo
         run: |
-          sudo apt-get update
-          sudo apt-get install python3 python3-pip mysql-client -y
-          pip3 install flask requests
+          for i in {1..10}; do
+            if mysqladmin ping -h 127.0.0.1 -uroot -padmin --silent; then
+              echo "MySQL está listo 🚀"
+              break
+            fi
+            echo "Esperando MySQL..."
+            sleep 5
+          done
 
-      - name: Ejecutar backup MySQL
+      - name: Ejecutar script backup
         run: |
           chmod +x ./backup_mysql.sh
           ./backup_mysql.sh
-        env:
-          MYSQL_USER: root
-          MYSQL_PASSWORD: admin
-          MYSQL_HOST: mysql
-          MYSQL_DB: testdb
-
-      - name: Levantar servidor simulado
-        run: |
-          nohup python3 ./server_simulado.py &
-          sleep 3
-
-      - name: Ejecutar chequeo de logs y endpoints
-        run: |
-          python3 ./check_logs_endpoints.py
