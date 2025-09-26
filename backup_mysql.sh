@@ -1,18 +1,20 @@
 #!/bin/bash
+set -e
 
-DB_USER="${MYSQL_USER:-root}"
-DB_PASSWORD="${MYSQL_PASSWORD:-admin}"
-DB_HOST="${MYSQL_HOST:-localhost}"
-DB_NAME="${MYSQL_DB:-testdb}"
+echo "Ejecutando backup de MySQL..."
 
-BACKUP_DIR="./backups"
-TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+# Variables desde GitHub Actions
+USER="${MYSQL_USER:-root}"
+PASS="${MYSQL_PASSWORD:-admin}"
+HOST="${MYSQL_HOST:-127.0.0.1}"
+DB="${MYSQL_DB:-testdb}"
 
-mkdir -p "$BACKUP_DIR"
+BACKUP_FILE="backup_$(date +%Y%m%d_%H%M%S).sql"
 
-if mysqldump -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" > "$BACKUP_DIR/${DB_NAME}_backup_$TIMESTAMP.sql"; then
-    echo "Backup realizado correctamente: $BACKUP_DIR/${DB_NAME}_backup_$TIMESTAMP.sql"
+# Usar --password= para evitar warning
+if mysqldump -h "$HOST" -u "$USER" --password="$PASS" "$DB" > "$BACKUP_FILE"; then
+  echo "Backup exitoso en $BACKUP_FILE"
 else
-    echo "Error en el backup"
-    exit 1
+  echo "Error en el backup"
+  exit 1
 fi
