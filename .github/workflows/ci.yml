@@ -1,0 +1,35 @@
+name: Proyecto4 CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  devops-automation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Chequear repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Python y dependencias
+        run: |
+          sudo apt-get update
+          sudo apt-get install python3 python3-pip -y
+          pip3 install flask requests
+
+      - name: Ejecutar backup MySQL
+        run: |
+          chmod +x ./backup_mysql.sh
+          ./backup_mysql.sh
+
+      - name: Levantar servidor simulado
+        run: |
+          nohup python3 ./server_simulado.py &
+          sleep 3
+
+      - name: Ejecutar chequeo de logs y endpoints
+        run: |
+          python3 ./check_logs_endpoints.py
