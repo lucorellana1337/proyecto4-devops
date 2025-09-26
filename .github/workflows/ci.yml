@@ -9,11 +9,12 @@ on:
 jobs:
   devops-automation:
     runs-on: ubuntu-latest
+
     services:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_ROOT_PASSWORD: admin
           MYSQL_DATABASE: testdb
         ports:
           - 3306:3306
@@ -27,10 +28,10 @@ jobs:
       - name: Chequear repositorio
         uses: actions/checkout@v4
 
-      - name: Instalar Python y dependencias
+      - name: Instalar Python, dependencias y cliente MySQL
         run: |
           sudo apt-get update
-          sudo apt-get install python3 python3-pip -y
+          sudo apt-get install python3 python3-pip mysql-client -y
           pip3 install flask requests
 
       - name: Ejecutar backup MySQL
@@ -39,8 +40,8 @@ jobs:
           ./backup_mysql.sh
         env:
           MYSQL_USER: root
-          MYSQL_PASSWORD: rootpassword
-          MYSQL_HOST: 127.0.0.1
+          MYSQL_PASSWORD: admin
+          MYSQL_HOST: mysql
           MYSQL_DB: testdb
 
       - name: Levantar servidor simulado

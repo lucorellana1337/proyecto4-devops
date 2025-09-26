@@ -1,26 +1,17 @@
 #!/bin/bash
 
-# Configuración
-DB_USER="root"                # Cambia si usas otro usuario
-DB_PASSWORD="admin"  # Pon tu contraseña de MySQL
-DB_NAME="testdb"  # Pon el nombre de tu base de datos
+DB_USER="${MYSQL_USER:-root}"
+DB_PASSWORD="${MYSQL_PASSWORD:-admin}"
+DB_HOST="${MYSQL_HOST:-localhost}"
+DB_NAME="${MYSQL_DB:-testdb}"
+
 BACKUP_DIR="./backups"
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 
-# Crear carpeta si no existe
-mkdir -p $BACKUP_DIR
+mkdir -p "$BACKUP_DIR"
 
-# Fecha actual
-DATE=$(date +"%Y%m%d_%H%M%S")
-
-# Archivo de backup
-BACKUP_FILE="$BACKUP_DIR/${DB_NAME}_backup_$DATE.sql"
-
-# Ejecutar backup
-mysqldump -u $DB_USER -p$DB_PASSWORD $DB_NAME > $BACKUP_FILE
-
-# Verificar si se hizo el backup
-if [ $? -eq 0 ]; then
-    echo "Backup realizado correctamente: $BACKUP_FILE"
+if mysqldump -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" > "$BACKUP_DIR/${DB_NAME}_backup_$TIMESTAMP.sql"; then
+    echo "Backup realizado correctamente: $BACKUP_DIR/${DB_NAME}_backup_$TIMESTAMP.sql"
 else
     echo "Error en el backup"
     exit 1
