@@ -9,6 +9,19 @@ on:
 jobs:
   devops-automation:
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: testdb
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
 
     steps:
       - name: Chequear repositorio
@@ -24,6 +37,11 @@ jobs:
         run: |
           chmod +x ./backup_mysql.sh
           ./backup_mysql.sh
+        env:
+          MYSQL_USER: root
+          MYSQL_PASSWORD: rootpassword
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_DB: testdb
 
       - name: Levantar servidor simulado
         run: |
